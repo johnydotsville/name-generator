@@ -1,6 +1,6 @@
 package johny.dotsville;
 
-import java.net.MalformedURLException;
+import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
@@ -14,7 +14,7 @@ public class App
 {
     public static void main(String[] args)
     {
-        String baseUrl = "https://peoplenames.ru/male/";
+        String baseUrl = "https://peoplenames.ru/russia/male/";
         List<String> letters = Arrays.asList(
                 "a", "b", "v", "g", "d",
                 "e", "zh", "z", "i",
@@ -43,8 +43,16 @@ public class App
                 .flatMap(c -> c.stream())
                 .collect(Collectors.toList());
 
-        Set<String> names = Parser.parse(contentsAsStrings, pattern1, pattern2);
+        List<String> names = Parser.parse(contentsAsStrings, pattern1, pattern2)
+                .stream()
+                .sorted((x, y) -> x.compareTo(y))
+                .collect(Collectors.toList());
 
-        names.forEach(System.out::println);
+        String path = "C:\\tmp\\names.txt";
+        try {
+            FileWriter.write(names, path);
+        } catch (IOException ex) {
+
+        }
     }
 }

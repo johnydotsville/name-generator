@@ -5,24 +5,25 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import java.util.stream.Collectors;
 
 public class Parser {
     public static Set<String> parse(List<String> data, Pattern... patterns) {
-        Set<String> result = new TreeSet<>();
-        for (String string : data) {
-            result.addAll(getInfo(string, patterns));
-        }
-        return result;
+        return data.stream()
+                .map(str -> extractData(str, patterns))
+                .flatMap(e -> e.stream())
+                .collect(Collectors.toSet());
     }
 
-    private static Set<String> getInfo(String string, Pattern[] patterns) {
-        Set<String> names = new TreeSet<>();
+    // TODO: поскольку здесь выбирается фиксированная группа (1), метод не универсален
+    private static Set<String> extractData(String string, Pattern[] patterns) {
+        Set<String> data = new TreeSet<>();
         for (Pattern pattern : patterns) {
             Matcher matcher = pattern.matcher(string);
-            if (matcher.find()) {
-                names.add(matcher.group(1));
+            while (matcher.find()) {
+                data.add(matcher.group(1));
             }
         }
-        return names;
+        return data;
     }
 }
