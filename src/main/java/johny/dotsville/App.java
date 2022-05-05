@@ -4,26 +4,43 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.concurrent.Callable;
+
+import picocli.CommandLine;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
 
 import johny.dotsville.utils.*;
 
-public class App
+@Command(name = "SomeRandomName")
+public class App implements Callable<Integer>
 {
+    @Option(names = { "-u", "--url" }, arity = "1..*", description = "Url источник информации")
+    private String[] urls;
+
+    @Option(names = { "-o", "--output" }, description = "Файл для сохранения результата")
+    private String outputFile;
+
+//    @Option(names = { "-ul", "--urllist" }, description = "File with urls download content from")
+//    private String urlList;
+
     public static void main(String[] args)
     {
-        String baseUrl = "https://peoplenames.ru/russia/male/";
-        List<String> letters = Arrays.asList(
-                "a", "b", "v", "g", "d",
-                "e", "zh", "z", "i",
-                "k", "l", "m", "n", "o",
-                "p", "r", "s", "t", "u",
-                "f", "h", "c", "je", "ya");
+        int exitCode = new CommandLine(new App()).execute(args);
+        System.exit(exitCode);
+    }
 
-        List<URL> urls = letters.stream()
-                .map(l -> UrlHelper.urlFromString(baseUrl + l))
+    @Override
+    public Integer call() throws Exception {
+        process(urls);
+        return 0;
+    }
+
+    private void process(String[] rawUrls) {
+        List<URL> urls = Arrays.stream(rawUrls)
+                .map(l -> UrlHelper.urlFromString(l))
                 .filter(e -> e.isRight())
                 .map(e -> e.getRight())
                 .collect(Collectors.toList());
@@ -48,9 +65,9 @@ public class App
                 .sorted((x, y) -> x.compareTo(y))
                 .collect(Collectors.toList());
 
-        String path = "C:\\tmp\\names.txt";
+        // TODO сначала проверить корректность пути и только потом скачивать
         try {
-            FileWriter.write(names, path);
+            FileWriter.write(names, outputFile);
         } catch (IOException ex) {
 
         }
