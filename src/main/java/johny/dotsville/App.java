@@ -15,21 +15,29 @@ import java.util.stream.Stream;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
+import picocli.CommandLine.ArgGroup;
 
 import johny.dotsville.utils.*;
 
 @Command(name = "SomeRandomName")
 public class App implements Callable<Integer>
 {
-    // arity - чтобы в опцию можно было передавать разом много значений, -u a1 b2 c3 d4
-//    @Option(names = { "-u", "--url" }, arity = "1..*", description = "Url источник информации")
-//    private String[] urls;
+    @Option(names = { "-p", "--parse"}, description = "Файл с шаблонами регулярного выражения")
+    private String[] parse;
+
+    @ArgGroup(exclusive = true)
+    private UrlList urlList;
+
+    static class UrlList {
+        // arity - чтобы в опцию можно было передавать разом много значений, -u a1 b2 c3 d4
+        @Option(names = { "-u", "--url" }, arity = "1..*", description = "Url источник информации")
+        private String[] urlManual;
+        @Option(names = { "-ul", "--urllist" }, description = "File with urls download content from")
+        private String urlFromSource;
+    }
 
     @Option(names = { "-o", "--output" }, description = "Файл для сохранения результата")
     private String outputFile;
-
-    @Option(names = { "-ul", "--urllist" }, description = "File with urls download content from")
-    private String urlList;
 
     public static void main(String[] args)
     {
@@ -39,17 +47,17 @@ public class App implements Callable<Integer>
 
     @Override
     public Integer call() throws Exception {
-//        process(urls);
-        process();
+        try {
+            process(getRawUrls());
+        } catch (Exception ex) {
+            System.out.println(ex.getMessage());
+        }
         return 0;
     }
 
-//    private void process(String[] rawUrls) {
-//    private void process(String rawUrlsList) {
-    private void process() {
+    private void process(Stream<String> rawUrls) {
 
-//        List<URL> urls = Arrays.stream(rawUrls)
-        List<URL> urls = getRawUrlsFromFile(urlList)
+        List<URL> urls = rawUrls
                 .map(l -> UrlHelper.urlFromString(l))
                 .filter(e -> e.isRight())
                 .map(e -> e.getRight())
@@ -81,6 +89,16 @@ public class App implements Callable<Integer>
         } catch (IOException ex) {
 
         }
+    }
+
+    private Stream<String> getRawUrls() {
+        if (urlList.urlManual != null ) {
+            return Arrays.stream(urlList.urlManual);
+        }
+        if (urlList.urlFromSource != null) {
+            return getRawUrlsFromFile(urlList.urlFromSource);
+        }
+        throw new RuntimeException("Не удалось получить список url");
     }
 
     private Stream<String> getRawUrlsFromFile(String file) {
