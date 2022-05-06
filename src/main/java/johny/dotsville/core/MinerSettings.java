@@ -12,7 +12,7 @@ import java.util.regex.PatternSyntaxException;
 
 public class MinerSettings {
     private List<URL> urls = new LinkedList<>();
-    private List<Pattern> parsePatterns = new LinkedList<>();
+    private List<Pattern> parsePatterns;
     private String outputFile;
 
     // TODO написать тесты для этого
@@ -22,7 +22,9 @@ public class MinerSettings {
         this.outputFile = Objects.requireNonNull(outputFile);
 
         skipIncorrectUrls(rawUrls);
-        skipIncorrectPatterns(rawPatterns);
+        if (parsePatterns != null) {
+            skipIncorrectPatterns(rawPatterns);
+        }
     }
 
     public List<URL> getUrls() {
@@ -30,7 +32,7 @@ public class MinerSettings {
     }
 
     public List<Pattern> getParsePatterns() {
-        return List.copyOf(parsePatterns);
+        return parsePatterns == null ? null : List.copyOf(parsePatterns);
     }
 
     public String getOutputFile() {
@@ -52,6 +54,9 @@ public class MinerSettings {
     private void skipIncorrectPatterns(List<String> rawPatterns) {
         for (String rawPattern : rawPatterns) {
             try {
+                if (parsePatterns == null) {
+                    parsePatterns = new LinkedList<>();
+                }
                 parsePatterns.add(Pattern.compile(rawPattern));
             } catch (PatternSyntaxException ex) {
                 // TODO приделать логгер

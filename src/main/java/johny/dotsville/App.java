@@ -1,31 +1,26 @@
 package johny.dotsville;
 
 import java.io.IOException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.List;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.concurrent.Callable;
-import java.util.stream.Stream;
 
-import johny.dotsville.core.Miner;
-import johny.dotsville.core.MinerSettings;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.ArgGroup;
 
-import johny.dotsville.utils.*;
+import johny.dotsville.core.Miner;
+import johny.dotsville.core.MinerSettings;
 
 @Command(name = "SomeRandomName")
 public class App implements Callable<Integer>
 {
-    @Option(names = { "-p", "--parse"}, description = "Файл с шаблонами регулярного выражения")
-    private String[] parse;
+    @Option(names = { "-p", "--parse"}, arity = "0..1", description = "Файл с шаблонами регулярного выражения")
+    private String parsePatternSource;
 
     @ArgGroup(exclusive = true)
     private UrlList urlList;
@@ -59,9 +54,18 @@ public class App implements Callable<Integer>
     }
 
     public List<String> getRawPatterns() {
-        return List.of(
-                "\\s*span class=\"sex__names__name\">([А-Яа-я]{2,})</span>",
-                "\\s+([А-Яа-я]+)\\s*</a>");
+        if (parsePatternSource == null) {
+            return null;
+        }
+        Path path = Paths.get(parsePatternSource);
+        try {
+            List<String> patterns = Files.lines(path).collect(Collectors.toList());
+            return patterns;
+        } catch (IOException ex)  {
+            // TODO приделать логгер
+            System.out.println(ex.getMessage());
+            throw new RuntimeException(ex);
+        }
     }
 
     private List<String> getRawUrls() {
