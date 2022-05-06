@@ -32,14 +32,18 @@ public class Downloader {
 
     public static List<Either<Exception, Object>> download(List<URL> urls, ContentType contentType) {
         return urls.stream()
-                .map(url -> download(url, contentType))
-                .collect(Collectors.toList());
+            .map(url -> download(url, contentType))
+            .collect(Collectors.toList());
     }
 
-    private static Object getContentOfType(URLConnection conn, ContentType type) throws IOException {
-        if (!conn.getContentType().startsWith(type.tag)) {
+    private static Object getContentOfType(URLConnection urlConnection, ContentType type) throws IOException {
+        validateContentType(urlConnection, type);
+        return urlConnection.getContent();
+    }
+
+    private static void validateContentType(URLConnection urlConnection, ContentType type) {
+        if (!urlConnection.getContentType().startsWith(type.tag)) {
             throw new IllegalArgumentException("Фактический тип контента не совпадает с ожидаемым.");
         }
-        return conn.getContent();
     }
 }
