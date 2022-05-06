@@ -8,7 +8,7 @@ import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
 public class Parser {
-    public static Set<String> parse(List<String> data, Pattern... patterns) {
+    public static Set<String> parse(List<String> data, List<Pattern> patterns) {
         return data.stream()
                 .map(str -> extractData(str, patterns))
                 .flatMap(e -> e.stream())
@@ -16,7 +16,7 @@ public class Parser {
     }
 
     // TODO: поскольку здесь выбирается фиксированная группа (1), метод не универсален
-    private static Set<String> extractData(String string, Pattern[] patterns) {
+    private static Set<String> extractData(String string, List<Pattern> patterns) {
         Set<String> data = new TreeSet<>();
         for (Pattern pattern : patterns) {
             Matcher matcher = pattern.matcher(string);

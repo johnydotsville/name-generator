@@ -12,6 +12,8 @@ import java.util.stream.Collectors;
 import java.util.concurrent.Callable;
 import java.util.stream.Stream;
 
+import johny.dotsville.core.Miner;
+import johny.dotsville.core.MinerSettings;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -48,52 +50,23 @@ public class App implements Callable<Integer>
     @Override
     public Integer call() throws Exception {
         try {
-            process(getRawUrls());
+            MinerSettings settings = new MinerSettings(getRawUrls(), getRawPatterns(), outputFile);
+            new Miner(settings).mine();
         } catch (Exception ex) {
             System.out.println(ex.getMessage());
         }
         return 0;
     }
 
-    private void process(Stream<String> rawUrls) {
-
-        List<URL> urls = rawUrls
-                .map(l -> UrlHelper.urlFromString(l))
-                .filter(e -> e.isRight())
-                .map(e -> e.getRight())
-                .collect(Collectors.toList());
-
-        List<Object> contents = Downloader.download(urls, Downloader.ContentType.HTML).stream()
-                .filter(e -> e.isRight())
-                .map(e -> e.getRight())
-                .collect(Collectors.toList());
-
-        List<String> contentsAsStrings = contents.stream()
-                .map(c -> Converter.bytesToStrings(c))
-                .flatMap(c -> c.stream())
-                .collect(Collectors.toList());
-
-        String regex1 = "\\s*span class=\"sex__names__name\">([А-Яа-я]{2,})</span>";
-        String regex2 = "\\s+([А-Яа-я]+)\\s*</a>";
-        Pattern pattern1 = Pattern.compile(regex1);
-        Pattern pattern2 = Pattern.compile(regex2);
-
-        List<String> names = Parser.parse(contentsAsStrings, pattern1, pattern2)
-                .stream()
-                .sorted((x, y) -> x.compareTo(y))
-                .collect(Collectors.toList());
-
-        // TODO сначала проверить корректность пути и только потом скачивать
-        try {
-            FileWriter.write(names, outputFile);
-        } catch (IOException ex) {
-
-        }
+    public List<String> getRawPatterns() {
+        return List.of(
+                "\\s*span class=\"sex__names__name\">([А-Яа-я]{2,})</span>",
+                "\\s+([А-Яа-я]+)\\s*</a>");
     }
 
-    private Stream<String> getRawUrls() {
+    private List<String> getRawUrls() {
         if (urlList.urlManual != null ) {
-            return Arrays.stream(urlList.urlManual);
+            return List.of(urlList.urlManual);
         }
         if (urlList.urlFromSource != null) {
             return getRawUrlsFromFile(urlList.urlFromSource);
@@ -101,10 +74,11 @@ public class App implements Callable<Integer>
         throw new RuntimeException("Не удалось получить список url");
     }
 
-    private Stream<String> getRawUrlsFromFile(String file) {
+    private List<String> getRawUrlsFromFile(String file) {
         Path path = Paths.get(file);
         try {
-            return Files.lines(path);
+            return Files.lines(path)
+                    .collect(Collectors.toList());
         } catch (IOException ex) {
             throw new IllegalArgumentException("Файл " + file + " не существует или его невозможно прочитать.");
         }
