@@ -7,20 +7,20 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class Miner {
-    private MinerSettings settings;
+public class Grabber {
+    private GrabberSettings settings;
 
-    public Miner() { }
+    public Grabber() { }
 
-    public Miner(MinerSettings settings) {
+    public Grabber(GrabberSettings settings) {
         this.settings = settings;
     }
 
-    public void setSettings(MinerSettings settings) {
+    public void setSettings(GrabberSettings settings) {
         this.settings = settings;
     }
 
-    public void mine() {
+    public void grab() {
         List<String> result = downloadContentAsStrings();
         if (settings.getParsePatterns() != null) {
             result = Parser.parse(result, settings.getParsePatterns())

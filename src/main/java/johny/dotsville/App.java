@@ -13,8 +13,8 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.ArgGroup;
 
-import johny.dotsville.core.Miner;
-import johny.dotsville.core.MinerSettings;
+import johny.dotsville.core.Grabber;
+import johny.dotsville.core.GrabberSettings;
 
 @Command(name = "SomeRandomName")
 public class App implements Callable<Integer>
@@ -45,8 +45,8 @@ public class App implements Callable<Integer>
     @Override
     public Integer call() throws Exception {
         try {
-            MinerSettings settings = new MinerSettings(getRawUrls(), getRawPatterns(), outputFile);
-            new Miner(settings).mine();
+            GrabberSettings settings = new GrabberSettings(getRawUrls(), getRawPatterns(), outputFile);
+            new Grabber(settings).grab();
         } catch (Exception ex) {
             System.out.println(ex.getMessage());
         }

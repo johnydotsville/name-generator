@@ -10,13 +10,13 @@ import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
-public class MinerSettings {
+public class GrabberSettings {
     private List<URL> urls = new LinkedList<>();
     private List<Pattern> parsePatterns;
     private String outputFile;
 
     // TODO написать тесты для этого
-    public MinerSettings(List<String> urls, List<String> parsePatterns, String outputFile) {
+    public GrabberSettings(List<String> urls, List<String> parsePatterns, String outputFile) {
         List<String> rawUrls = Objects.requireNonNull(urls);
         List<String> rawPatterns = parsePatterns;
         this.outputFile = Objects.requireNonNull(outputFile);
