@@ -20,8 +20,8 @@ public class Grabber {
         this.settings = settings;
     }
 
-    public void grab() {
-        List<String> result = downloadContentAsStrings();
+    public void grab() throws Exception {
+        List<String> result = Timer.<List<String>>runWithTimeTrack(() -> downloadContentAsStrings(), "Скачка контента");
         if (settings.getParsePatterns() != null) {
             result = Parser.parse(result, settings.getParsePatterns())
                     .stream()
