@@ -19,17 +19,24 @@ import johny.dotsville.core.GrabberSettings;
 @Command(name = "SomeRandomName")
 public class App implements Callable<Integer>
 {
-    @Option(names = { "-p", "--parse"}, arity = "0..1", description = "Файл с шаблонами регулярного выражения")
-    private String parsePatternSource;
+    @ArgGroup(exclusive = true)
+    private ParsingPattern parsingPattern;
+    static class ParsingPattern {
+        // Почему эти поля видно через parsingPattern, они же приватные?
+        @Option(names = { "-p", "--pattern" }, arity = "1..*", description = "Регулярное выражение для разбора строк")
+        private String[] patternManual;
+        @Option(names = { "-ps", "--patternSource"}, description = "Файл с регулярными выражениями для разбора строк")
+        private String patternSource;
+    }
 
+    // exclusive - означает, что нельзя использовать одновременно >1 параметра из этой группы
     @ArgGroup(exclusive = true)
     private UrlList urlList;
-
     static class UrlList {
         // arity - чтобы в опцию можно было передавать разом много значений, -u a1 b2 c3 d4
         @Option(names = { "-u", "--url" }, arity = "1..*", description = "Url источник информации")
         private String[] urlManual;
-        @Option(names = { "-ul", "--urllist" }, description = "File with urls download content from")
+        @Option(names = { "-ul", "--urlSoource" }, description = "File with urls download content from")
         private String urlFromSource;
     }
 
@@ -42,6 +49,7 @@ public class App implements Callable<Integer>
         System.exit(exitCode);
     }
 
+    // Тут собственно код-работяга
     @Override
     public Integer call() throws Exception {
         try {
@@ -54,10 +62,13 @@ public class App implements Callable<Integer>
     }
 
     public List<String> getRawPatterns() {
-        if (parsePatternSource == null) {
-            return null;
+        if (parsingPattern.patternManual != null) {
+            return List.of(parsingPattern.patternManual);
         }
-        Path path = Paths.get(parsePatternSource);
+        if (parsingPattern.patternSource == null) {
+            throw new RuntimeException("Не удалось получить регулярные выражения для разбора строк");
+        }
+        Path path = Paths.get(parsingPattern.patternSource);
         try {
             List<String> patterns = Files.lines(path).collect(Collectors.toList());
             return patterns;
@@ -88,3 +99,12 @@ public class App implements Callable<Integer>
         }
     }
 }
+
+
+/*
+TODO:
+    - Добавить логирование
+    - Добавить тесты
+    - Добавить вывод в консоль сообщений и ходе всех операций
+    - Добавить замер и показ времени каждой операции
+ */

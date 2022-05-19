@@ -21,17 +21,17 @@ public class Grabber {
     }
 
     public void grab() throws Exception {
-        List<String> result = Timer.<List<String>>runWithTimeTrack(() -> downloadContentAsStrings(), "Скачка контента");
         if (settings.getParsePatterns() != null) {
+            List<String> result = Timer.<List<String>>runWithTimeTrack(() -> downloadContentAsStrings(), "Скачка контента");
             result = Parser.parse(result, settings.getParsePatterns())
                     .stream()
                     .sorted((x, y) -> x.compareTo(y))
                     .collect(Collectors.toList());
-        }
-        try {
-            FileWriter.write(result, settings.getOutputFile());
-        } catch (IOException ex) {
+            try {
+                FileWriter.write(result, settings.getOutputFile());
+            } catch (IOException ex) {
 
+            }
         }
     }
 
