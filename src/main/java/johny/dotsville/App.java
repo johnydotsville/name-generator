@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.concurrent.Callable;
@@ -12,6 +13,8 @@ import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.ArgGroup;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import johny.dotsville.core.Grabber;
 import johny.dotsville.core.GrabberSettings;
@@ -19,6 +22,8 @@ import johny.dotsville.core.GrabberSettings;
 @Command(name = "SomeRandomName")
 public class App implements Callable<Integer>
 {
+    private static final Logger logger = LogManager.getLogger();
+
     @ArgGroup(exclusive = true)
     private ParsingPattern parsingPattern;
     static class ParsingPattern {
@@ -45,6 +50,7 @@ public class App implements Callable<Integer>
 
     public static void main(String[] args)
     {
+        logger.info("Запуск программы");
         int exitCode = new CommandLine(new App()).execute(args);
         System.exit(exitCode);
     }
@@ -53,17 +59,19 @@ public class App implements Callable<Integer>
     @Override
     public Integer call() throws Exception {
         try {
+            logger.info("Получение настроек...");
             GrabberSettings settings = new GrabberSettings(getRawUrls(), getRawPatterns(), outputFile);
+            logger.info("Получение информации...");
             new Grabber(settings).grab();
         } catch (Exception ex) {
-            System.out.println(ex.getMessage());
+            logger.error("Ошибка выполнения: {}", ex.getMessage());
         }
         return 0;
     }
 
     public List<String> getRawPatterns() {
         if (parsingPattern.patternManual != null) {
-            return List.of(parsingPattern.patternManual);
+            return Arrays.asList(parsingPattern.patternManual);
         }
         if (parsingPattern.patternSource == null) {
             throw new RuntimeException("Не удалось получить регулярные выражения для разбора строк");
@@ -73,15 +81,14 @@ public class App implements Callable<Integer>
             List<String> patterns = Files.lines(path).collect(Collectors.toList());
             return patterns;
         } catch (IOException ex)  {
-            // TODO приделать логгер
-            System.out.println(ex.getMessage());
+            logger.error("Ошибка получения регулярных выражений из файла. Причина: {}", ex.getMessage());
             throw new RuntimeException(ex);
         }
     }
 
     private List<String> getRawUrls() {
         if (urlList.urlManual != null ) {
-            return List.of(urlList.urlManual);
+            return Arrays.asList(urlList.urlManual);
         }
         if (urlList.urlFromSource != null) {
             return getRawUrlsFromFile(urlList.urlFromSource);
@@ -98,13 +105,11 @@ public class App implements Callable<Integer>
             throw new IllegalArgumentException("Файл " + file + " не существует или его невозможно прочитать.");
         }
     }
+
+//    TODO:
+//    - Добавить логирование
+//    - Добавить тесты
+//    - Добавить вывод в консоль сообщений и ходе всех операций
+//    - Добавить замер и показ времени каждой операции
+
 }
-
-
-/*
-TODO:
-    - Добавить логирование
-    - Добавить тесты
-    - Добавить вывод в консоль сообщений и ходе всех операций
-    - Добавить замер и показ времени каждой операции
- */

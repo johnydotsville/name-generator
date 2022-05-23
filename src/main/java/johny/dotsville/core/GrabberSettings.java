@@ -2,6 +2,8 @@ package johny.dotsville.core;
 
 import johny.dotsville.utils.Either;
 import johny.dotsville.utils.UrlHelper;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.net.URL;
 import java.util.LinkedList;
@@ -11,6 +13,8 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 public class GrabberSettings {
+    private static final Logger logger = LogManager.getLogger();
+
     private List<URL> urls = new LinkedList<>();
     private List<Pattern> parsePatterns;
     private String outputFile;
@@ -28,11 +32,13 @@ public class GrabberSettings {
     }
 
     public List<URL> getUrls() {
-        return List.copyOf(urls);
+//        return List.copyOf(urls);
+        return urls;
     }
 
     public List<Pattern> getParsePatterns() {
-        return parsePatterns == null ? null : List.copyOf(parsePatterns);
+//        return parsePatterns == null ? null : List.copyOf(parsePatterns);
+        return parsePatterns == null ? null : parsePatterns;
     }
 
     public String getOutputFile() {
@@ -40,27 +46,29 @@ public class GrabberSettings {
     }
 
     private void skipIncorrectUrls(List<String> urls) {
+        logger.info("Обработка списка url...");
         for (String url : urls) {
             Either<Exception, URL> result = UrlHelper.urlFromString(url);
             if (result.isRight()) {
+                logger.trace("URL сформирован: {}", result.getRight());
                 this.urls.add(result.getRight());
             } else {
-                // TODO приделать логгер
-                System.out.println(result.getLeft().getMessage());
+                logger.warn("Не удалось создать url из \"{}\". Причина: {}", url, result.getLeft().getMessage());
             }
         }
     }
 
     private void skipIncorrectPatterns(List<String> rawPatterns) {
+        logger.info("Обработка списка регулярных выражений...");
         for (String rawPattern : rawPatterns) {
             try {
                 if (parsePatterns == null) {
                     parsePatterns = new LinkedList<>();
                 }
+                logger.debug("Попытка сформировать паттерн из: {}", rawPattern);
                 parsePatterns.add(Pattern.compile(rawPattern));
             } catch (PatternSyntaxException ex) {
-                // TODO приделать логгер
-                System.out.println("Кривой паттерн: " + rawPattern);
+                logger.warn("Не удалось создать паттерн из \"{}\". Причина: {}", rawPattern, ex.getMessage());
             }
         }
     }

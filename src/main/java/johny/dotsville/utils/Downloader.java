@@ -1,5 +1,8 @@
 package johny.dotsville.utils;
 
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+
 import java.io.*;
 import java.net.URLConnection;
 import java.util.List;
@@ -7,6 +10,7 @@ import java.net.URL;
 import java.util.stream.Collectors;
 
 public class Downloader {
+    private static final Logger logger = LogManager.getLogger();
 
     public enum ContentType {
         ANY(null), HTML("text/html");
@@ -16,18 +20,6 @@ public class Downloader {
         private ContentType(String tag) {
             this.tag = tag;
         }
-    }
-
-    public static Either<Exception, Object> download(URL url, ContentType contentType) {
-        Object content = null;
-        Exception error = null;
-        try {
-            URLConnection conn = url.openConnection();
-            content = getContentOfType(conn, contentType);
-        } catch (Exception ex) {
-            error = ex;
-        }
-        return new Either<Exception, Object>(error, content);
     }
 
     public static List<Either<Exception, Object>> download(List<URL> urls, ContentType contentType) {
@@ -45,5 +37,21 @@ public class Downloader {
         if (!urlConnection.getContentType().startsWith(type.tag)) {
             throw new IllegalArgumentException("Фактический тип контента не совпадает с ожидаемым.");
         }
+    }
+
+    public static Either<Exception, Object> download(URL url, ContentType contentType) {
+        Object content = null;
+        Exception error = null;
+        try {
+            logger.debug("Пытаемся открыть соединение: \"{}\"", url);
+            URLConnection conn = url.openConnection();
+            logger.debug("Соединение открыто, пытаемся получить содержимое");
+            content = getContentOfType(conn, contentType);
+            logger.debug("Содержимое получено");
+        } catch (Exception ex) {
+            logger.warn("Не удалось скачать содержимое url \"{}\". Причина: {}", url, ex.getMessage());
+            error = ex;
+        }
+        return new Either<Exception, Object>(error, content);
     }
 }
