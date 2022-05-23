@@ -29,9 +29,10 @@ public class Parser {
             Matcher matcher = pattern.matcher(string);
             while (matcher.find()) {
                 String match = matcher.group(1);
-                logger.debug("Обнаружено совпадение: {}", match);
+                logger.trace("Обнаружено совпадение: {}", match);
                 data.add(match);
             }
+            logger.trace("Не обнаружено совпадений");
         }
         return data;
     }

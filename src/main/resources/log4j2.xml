@@ -13,7 +13,6 @@
     </Appenders>
     <Loggers>
         <Root level="debug">
-            <AppenderRef ref="Konsole"/>
             <AppenderRef ref="FileLog"/>
         </Root>
     </Loggers>

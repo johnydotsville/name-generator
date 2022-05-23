@@ -48,7 +48,7 @@ public class Grabber {
         List<Either<Exception, Object>> contents = Downloader.download(settings.getUrls(), Downloader.ContentType.HTML);
         for (Either<Exception, Object> item : contents) {
             if (item.isRight()) {
-                result.addAll(Converter.bytesToStrings(item.getRight()));
+                result.addAll((List<String>)item.getRight());
             }
         }
         logger.info("Скачивание содержимого ссылок закончено.");

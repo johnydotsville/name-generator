@@ -28,9 +28,10 @@ public class Downloader {
             .collect(Collectors.toList());
     }
 
-    private static Object getContentOfType(URLConnection urlConnection, ContentType type) throws IOException {
+    private static List<String> getContentOfType(URLConnection urlConnection, ContentType type) throws IOException {
         validateContentType(urlConnection, type);
-        return urlConnection.getContent();
+        BufferedReader buff = new BufferedReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8"));
+        return buff.lines().collect(Collectors.toList());
     }
 
     private static void validateContentType(URLConnection urlConnection, ContentType type) {
